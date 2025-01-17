@@ -16,10 +16,17 @@ Including another URLconf
 """
 
 from django.contrib import admin
-from django.urls import path
+from django.urls import include, path
 from . import views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("api/health/", views.health_check, name="health_check"),  # Health check URL
+    path("api/health/", views.health_check, name="health_check"),
 ]
+
+custom_apps = ["users"]
+
+for app in custom_apps:
+    urlpatterns.append(
+        path(f"api/{app}/", include(f"food_delivery_app.apps.{app}.urls"), name=app)
+    )

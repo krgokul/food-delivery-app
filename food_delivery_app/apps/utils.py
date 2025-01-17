@@ -1,22 +1,37 @@
-# utils.py
-from django.utils import timezone
-import pytz
-import constants as const
+from rest_framework.response import Response
+from rest_framework import status
+from food_delivery_app import apps
 
 
-def convert_utc_to_timezone(utc_datetime, tz_name=const.TIME_ZONE):
-    """
-    Convert a UTC datetime to a specific timezone (default: local timezone).
-    """
-    # Ensure the passed datetime is timezone-aware
-    if utc_datetime and utc_datetime.tzinfo is None:
-        utc_datetime = timezone.make_aware(utc_datetime, timezone.utc)
+class DynamicPrefixMixin:
+    # Mapping model classes to prefsixes
+    MODEL_PREFIX_MAP = {apps.users.models.User: "User"}
 
-    # If a specific timezone is provided, use it; otherwise, use the default local timezone
-    if tz_name:
-        target_timezone = pytz.timezone(tz_name)
-    else:
-        target_timezone = timezone.get_current_timezone()
+    def get_prefix(self, instance):
+        """Determine the prefix based on the instance."""
+        # Get the prefix using the model class, default to "item"
+        return self.MODEL_PREFIX_MAP[type(instance)]
 
-    # Convert UTC to the target timezone
-    return utc_datetime.astimezone(target_timezone)
+    def add_message(self, response, instance, action):
+        """Add custom message with dynamic prefix for create/update actions."""
+        prefix = self.get_prefix(instance)
+        action_message = f"{prefix} Record {action} successfully."
+        response.data["message"] = action_message
+        return response
+
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        return self.add_message(response, response.instance, "created")
+
+    def update(self, request, *args, **kwargs):
+        response = super().update(request, *args, **kwargs)
+        return self.add_message(response, response.instance, "updated")
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        prefix = self.get_prefix(instance)
+        super().destroy(request, *args, **kwargs)
+        return Response(
+            {"message": f"{prefix} Record deleted successfully."},
+            status=status.HTTP_204_NO_CONTENT,
+        )
