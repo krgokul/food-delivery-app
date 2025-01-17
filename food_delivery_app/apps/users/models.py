@@ -4,7 +4,9 @@ from food_delivery_app.apps.users import enums
 
 class User(models.Model):
     user_id = models.BigAutoField(primary_key=True)
-    role = models.CharField(max_length=30, choices=enums.Role.choices)
+    role = models.CharField(
+        max_length=30, choices=enums.Role.choices, default=enums.Role.CUSTOMER
+    )
     gender = models.CharField(
         max_length=20,
         choices=enums.Gender.choices,
@@ -25,19 +27,12 @@ class User(models.Model):
 
 class Address(models.Model):
     address_id = models.BigAutoField(primary_key=True)
-    user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="user_addresses"
-    )
-    address_type = models.CharField(
-        max_length=10, choices=enums.AddressType.choices, default=enums.AddressType.HOME
-    )
     address_line_1 = models.TextField()
     address_line_2 = models.TextField(null=True, default="")
     city = models.CharField(max_length=50)
     state = models.CharField(max_length=50)
     country = models.CharField(max_length=50)
     zip_code = models.CharField(max_length=20)
-    is_default = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -46,10 +41,8 @@ class Address(models.Model):
 
 
 class Customer(models.Model):
-    address_id = models.BigAutoField(primary_key=True)
-    user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="user_customers"
-    )
+    customer_id = models.BigAutoField(primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="customers")
     dob = models.DateField()
     prefered_language = models.CharField(
         max_length=15, choices=enums.Language.choices, default=enums.Language.ENGLISH
@@ -63,3 +56,30 @@ class Customer(models.Model):
     last_order_date = models.DateTimeField(null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "customers"
+
+
+class UserAddress(models.Model):
+    """
+    Represents a user's address, linking a user to an address with an optional default setting
+    and an address type for categorization.
+    """
+
+    user_address_id = models.BigAutoField(primary_key=True)
+    customer_id = models.ForeignKey(
+        Customer, on_delete=models.CASCADE, related_name="user_addresses"
+    )
+    address_id = models.ForeignKey(
+        Address, on_delete=models.CASCADE, related_name="user_addresses"
+    )
+    is_default = models.BooleanField(default=False)
+    address_type = models.CharField(
+        max_length=10,
+        choices=enums.AddressType.choices,
+        default=enums.AddressType.HOME,
+    )
+
+    class Meta:
+        db_table = "user_addresses"
