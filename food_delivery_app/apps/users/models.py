@@ -1,9 +1,9 @@
 from django.db import models
 from food_delivery_app.apps.users import enums
+from django.contrib.auth.models import AbstractUser
 
 
-class User(models.Model):
-    user_id = models.BigAutoField(primary_key=True)
+class User(AbstractUser):
     role = models.CharField(
         max_length=30, choices=enums.Role.choices, default=enums.Role.CUSTOMER
     )
@@ -14,12 +14,14 @@ class User(models.Model):
     )
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100, null=True, default="")
-    email = models.EmailField(max_length=255, unique=True)
-    password = models.TextField()
     phone_number = models.CharField(max_length=15, blank=True)
-    is_active = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
+    is_superuser = models.BooleanField(default=False)
+    date_joined = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.email
 
     class Meta:
         db_table = "users"
@@ -40,46 +42,46 @@ class Address(models.Model):
         db_table = "addresses"
 
 
-class Customer(models.Model):
-    customer_id = models.BigAutoField(primary_key=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="customers")
-    dob = models.DateField()
-    prefered_language = models.CharField(
-        max_length=15, choices=enums.Language.choices, default=enums.Language.ENGLISH
-    )
-    prefered_payment_method = models.CharField(
-        max_length=25,
-        choices=enums.PaymentMethod.choices,
-        default=enums.PaymentMethod.CASH_ON_DELIVERY,
-    )
-    total_spent = models.DecimalField(max_digits=10, decimal_places=2)
-    last_order_date = models.DateTimeField(null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+# class Customer(models.Model):
+#     customer_id = models.BigAutoField(primary_key=True)
+#     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="customers")
+#     dob = models.DateField()
+#     prefered_language = models.CharField(
+#         max_length=15, choices=enums.Language.choices, default=enums.Language.ENGLISH
+#     )
+#     prefered_payment_method = models.CharField(
+#         max_length=25,
+#         choices=enums.PaymentMethod.choices,
+#         default=enums.PaymentMethod.CASH_ON_DELIVERY,
+#     )
+#     total_spent = models.DecimalField(max_digits=10, decimal_places=2)
+#     last_order_date = models.DateTimeField(null=True)
+#     created_at = models.DateTimeField(auto_now_add=True)
+#     updated_at = models.DateTimeField(auto_now=True)
 
-    class Meta:
-        db_table = "customers"
+#     class Meta:
+#         db_table = "customers"
 
 
-class UserAddress(models.Model):
-    """
-    Represents a user's address, linking a user to an address with an optional default setting
-    and an address type for categorization.
-    """
+# class UserAddress(models.Model):
+#     """
+#     Represents a user's address, linking a user to an address with an optional default setting
+#     and an address type for categorization.
+#     """
 
-    user_address_id = models.BigAutoField(primary_key=True)
-    customer_id = models.ForeignKey(
-        Customer, on_delete=models.CASCADE, related_name="user_addresses"
-    )
-    address_id = models.ForeignKey(
-        Address, on_delete=models.CASCADE, related_name="user_addresses"
-    )
-    is_default = models.BooleanField(default=False)
-    address_type = models.CharField(
-        max_length=10,
-        choices=enums.AddressType.choices,
-        default=enums.AddressType.HOME,
-    )
+#     user_address_id = models.BigAutoField(primary_key=True)
+#     customer_id = models.ForeignKey(
+#         Customer, on_delete=models.CASCADE, related_name="user_addresses"
+#     )
+#     address_id = models.ForeignKey(
+#         Address, on_delete=models.CASCADE, related_name="user_addresses"
+#     )
+#     is_default = models.BooleanField(default=False)
+#     address_type = models.CharField(
+#         max_length=10,
+#         choices=enums.AddressType.choices,
+#         default=enums.AddressType.HOME,
+#     )
 
-    class Meta:
-        db_table = "user_addresses"
+#     class Meta:
+#         db_table = "user_addresses"

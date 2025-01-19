@@ -10,9 +10,12 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+from datetime import timedelta
 import os
 from dotenv import load_dotenv
 from pathlib import Path
+
+from food_delivery_app.apps import constants as const
 
 load_dotenv()
 
@@ -121,6 +124,25 @@ PASSWORD_HASHERS = [
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(
+        minutes=const.ACCESS_TOJKEN_EXPIRY_TIME
+    ),  # Access token lifetime
+    "REFRESH_TOKEN_LIFETIME": timedelta(
+        days=const.REFRESH_TOKEN_EXPIRY_TIME
+    ),  # Refresh token lifetime
+    "ROTATE_REFRESH_TOKENS": True,  # Rotate refresh tokens
+    "BLACKLIST_AFTER_ROTATION": True,  # Blacklist old refresh tokens
+    "USER_ID_FIELD": "email",
+}
+
+AUTH_USER_MODEL = "users.User"
 
 LANGUAGE_CODE = "en-us"
 
